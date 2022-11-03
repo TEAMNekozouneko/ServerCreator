@@ -1,0 +1,46 @@
+name: "Pyinstaller build"
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Get version"
+        id: get_version
+        uses: battila7/get-version-action@v2
+      
+      - name: "Create release"
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          release_name: ServerCreator - $ {{ steps.get_version.outputs.version }}
+          body: |
+            Server Creator ${{ steps.get_version.outputs.version }}
+          draft: false
+          prerelease: false
+
+  build:
+    runs-on: windows-latest
+
+    needs:
+      - release
+    
+    steps:
+      - uses: action/checkout@v2
+        with:
+          fetch-depth: 1
+
+      - name: Compile application
+        uses: JackMcKew/pyinstaller-action-windows@main
+        with:
+          path: "./"
+          name: "ServerCreator"
+      
