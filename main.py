@@ -196,7 +196,6 @@ def main():
     elif pf == Platform.WINDOWS and arch == Architecture.ARM64 or arch == Architecture.ARM32:
         print("Arm Archictures is not supported on Windows!")
         return
-    e
     
     ftres:dict = requests.get("https://serverjars.com/api/fetchTypes/").json()
 
