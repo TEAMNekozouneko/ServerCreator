@@ -1,4 +1,4 @@
-name: "Pyinstaller build"
+name: "Pyinstaller build and release"
 
 on:
   push:
@@ -37,6 +37,12 @@ jobs:
       - uses: action/checkout@v2
         with:
           fetch-depth: 1
+      
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.10
+
 
       - name: Compile application
         uses: JackMcKew/pyinstaller-action-windows@main
