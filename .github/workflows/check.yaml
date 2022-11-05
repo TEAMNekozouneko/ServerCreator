@@ -20,9 +20,10 @@ jobs:
 
       - name: "Install requirements"
         run: pip install -r requirements.txt
-      - run: pyinstaller servercreator.py --onefile -n ServerCreator
+      - name: "Compile exe file"
+        run: pyinstaller servercreator.py --onefile -n ServerCreator
 
       - uses: actions/upload-artifact@v3
         with:
           name: "Compiled file"
-          path: "dist/ServerCreator.exe"
+          path: "ServerCreator/dist/ServerCreator.exe"
