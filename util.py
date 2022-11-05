@@ -10,7 +10,7 @@ def yncheck(ans: str, d: bool):
     if ans2 == "no" or ans2 == "n":
         return False
     else:
-        return d if d == None else False
+        return d if d != None else False
 
 def isSpaceOnly(s):
     for ss in s:
