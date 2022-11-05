@@ -1,5 +1,5 @@
 print("Starting...")
-import requests, platform, time, tqdm, subprocess
+import requests, platform, time, tqdm, subprocess, tarfile, shutil, os, glob
 import util
 from enums import *
 
@@ -123,47 +123,50 @@ __si = {
 __jr = {
     Platform.WINDOWS: {
         "17": {
-            "x64": "https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-win_x64.zip",
-            "x32": "https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-win_i686.zip"
+            "aarch64": ("https://aka.ms/download-jdk/microsoft-jdk-17.0.5-windows-aarch64.zip", ".zip"),
+            "x64": ("https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-win_x64.zip", ".zip"),
+            "x32": ("https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-win_i686.zip", ".zip")
         },
         "16": {
-            "x64": "https://github.com/adoptium/temurin16-binaries/releases/download/jdk16u-2022-01-04-15-53-beta/OpenJDK16U-jdk_x64_windows_hotspot_2022-01-04-15-53.zip",
+            "aarch64": ("https://aka.ms/download-jdk/microsoft-jdk-16.0.2.7.1-windows-aarch64.zip", ".zip"),
+            "x64": ("https://github.com/adoptium/temurin16-binaries/releases/download/jdk16u-2022-01-04-15-53-beta/OpenJDK16U-jdk_x64_windows_hotspot_2022-01-04-15-53.zip", ".zip"),
             "x32": "https://github.com/adoptium/temurin16-binaries/releases/download/jdk16u-2022-01-04-15-53-beta/OpenJDK16U-jdk_x86-32_windows_hotspot_2022-01-04-15-53.zip"   
         },
         "8": {
-            "x64": "https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u352-b05-ea/OpenJDK8U-jre_x64_windows_hotspot_8u352b05_ea.zip",
-            "x32": "https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u352-b05-ea/OpenJDK8U-jre_x86-32_windows_hotspot_8u352b05_ea.zip"
+            "aarch64": ("https://aka.ms/download-jdk/microsoft-jdk-11.0.17-windows-aarch64.zip", ".zip"), # Java 11
+            "x64": ("https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u352-b05-ea/OpenJDK8U-jre_x64_windows_hotspot_8u352b05_ea.zip", ".zip"),
+            "x32": ("https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u352-b05-ea/OpenJDK8U-jre_x86-32_windows_hotspot_8u352b05_ea.zip", ".zip")
         }
     },
     Platform.MAC: {
         "17": {
-            "aarch64": "https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-macosx_aarch64.zip",
-            "x64": "https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-macosx_x64.zip"
+            "aarch64": ("https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-macosx_aarch64.zip", ".zip"),
+            "x64": ("https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-macosx_x64.zip", ".zip")
         },
         "16": {
-            "aarch64": "https://aka.ms/download-jdk/microsoft-jdk-16.0.2.7.1-macOS-aarch64.tar.gz",
-            "x64": "https://aka.ms/download-jdk/microsoft-jdk-16.0.2.7.1-macOS-x64.tar.gz"
+            "aarch64": ("https://aka.ms/download-jdk/microsoft-jdk-16.0.2.7.1-macOS-aarch64.tar.gz", ".tar.gz"),
+            "x64": ("https://aka.ms/download-jdk/microsoft-jdk-16.0.2.7.1-macOS-x64.tar.gz", ".tar.gz")
         },
         "8": {
-            "aarch64": "https://cdn.azul.com/zulu/bin/zulu8.66.0.15-ca-jdk8.0.352-macosx_aarch64.zip",
-            "x64": "https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u352-b05-ea/OpenJDK8U-jdk_x64_mac_hotspot_8u352b05_ea.tar.gz"
+            "aarch64": ("https://cdn.azul.com/zulu/bin/zulu8.66.0.15-ca-jdk8.0.352-macosx_aarch64.zip", ".zip"),
+            "x64": ("https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u352-b05-ea/OpenJDK8U-jdk_x64_mac_hotspot_8u352b05_ea.tar.gz", ".tar.gz")
         }
     },
     Platform.LINUX: {
         "17": {
-            "aarch64": "https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-linux_aarch64.tar.gz",
-            "x64": "https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-linux_x64.zip",
-            "x32": "https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-linux_i686.zip"
+            "aarch64": ("https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-linux_aarch64.tar.gz", ".tar.gz"),
+            "x64": ("https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-linux_x64.zip", ".zip"),
+            "x32": ("https://cdn.azul.com/zulu/bin/zulu17.38.21-ca-jdk17.0.5-linux_i686.zip", ".zip")
         },
         "16": {
-            "aarch64": "https://github.com/adoptium/temurin16-binaries/releases/download/jdk16u-2022-01-04-15-53-beta/OpenJDK16U-jdk_aarch64_linux_hotspot_2022-01-04-15-53.tar.gz",
-            "x64": "https://aka.ms/download-jdk/microsoft-jdk-16.0.2.7.1-linux-x64.tar.gz",
-            "x32": "https://aka.ms/download-jdk/microsoft-jdk-16.0.2.7.1-linux-aarch64.tar.gz"
+            "aarch64": ("https://github.com/adoptium/temurin16-binaries/releases/download/jdk16u-2022-01-04-15-53-beta/OpenJDK16U-jdk_aarch64_linux_hotspot_2022-01-04-15-53.tar.gz", ".tar.gz"),
+            "x64": ("https://aka.ms/download-jdk/microsoft-jdk-16.0.2.7.1-linux-x64.tar.gz", "tar.gz"),
+            "x32": ("https://aka.ms/download-jdk/microsoft-jdk-16.0.2.7.1-linux-aarch64.tar.gz", ".tar.gz")
         },
         "8": {
-            "aarch64": "https://cdn.azul.com/zulu-embedded/bin/zulu8.66.0.15-ca-jdk8.0.352-linux_aarch64.tar.gz",
-            "x64": "https://cdn.azul.com/zulu/bin/zulu8.66.0.15-ca-jdk8.0.352-linux_x64.zip",
-            "x32": "https://cdn.azul.com/zulu/bin/zulu8.66.0.15-ca-jdk8.0.352-linux_i686.zip"
+            "aarch64": ("https://cdn.azul.com/zulu-embedded/bin/zulu8.66.0.15-ca-jdk8.0.352-linux_aarch64.tar.gz", ".tar.gz"),
+            "x64": ("https://cdn.azul.com/zulu/bin/zulu8.66.0.15-ca-jdk8.0.352-linux_x64.zip", ".zip"),
+            "x32": ("https://cdn.azul.com/zulu/bin/zulu8.66.0.15-ca-jdk8.0.352-linux_i686.zip", ".zip")
         }
     }
 }
@@ -192,9 +195,6 @@ def main():
     
     if arch == Architecture.ARM32:
         print("Architecture arm32 (armhf) is not supported!")
-        return
-    elif pf == Platform.WINDOWS and arch == Architecture.ARM64 or arch == Architecture.ARM32:
-        print("Arm Archictures is not supported on Windows!")
         return
     
     ftres:dict = requests.get("https://serverjars.com/api/fetchTypes/").json()
@@ -251,7 +251,7 @@ def main():
                 continue
             break
 
-    print("------------------------------------------------------------------------------------")
+    print("--------------------------------- DOWNLOAD SERVER ---------------------------------")
     fn = f"{typeres}-{vtres}.jar"
     s:int = requests.get(f"https://serverjars.com/api/fetchDetails/{cate}/{typeres}/{vtres}").json()["response"]["size"]["bytes"]
 
@@ -260,9 +260,45 @@ def main():
     bar = tqdm.tqdm(total=s, unit="B", unit_scale=True)
     bar.set_description(f"{fn}")
     with open(fn, "wb") as f:
-        for chunk in jard.iter_content(chunk_size=512):
+        for chunk in jard.iter_content(chunk_size=1024):
             f.write(chunk)
             bar.update(len(chunk))
+        bar.close()
+    print("--------------------------------------- JAVA ---------------------------------------")
+    ujv: str = "8"
+    if cate == "servers" or cate == "vanilla" or cate == "modded":
+        if typeres == "snapshot":
+            ujv = "17"
+        elif "1.18" in vtres or "1.19" in vtres:
+            ujv = "17"
+        elif "1.17" in vtres:
+            ujv = "16"
+
+    jres = util.yncheck(input("Javaを自動でダウンロードしますか? ([Y]es/[N]o [Default: Yes]): "), True)
+    print(jres)
+    if jres:
+        jdu = __jr[pf][ujv][arch.value]
+        js = float(requests.head(jdu[0]).headers["content-length"])
+        jbar = tqdm.tqdm(desc=f"Java {ujv}", total=js, unit="B", unit_scale=True)
+        jds = requests.get(jdu[0], stream=True)
+        with open(f"java{jdu[1]}", "wb") as j:
+            for chunk in jds.iter_content(1024):
+                j.write(chunk)
+                jbar.update(len(chunk))
+            jbar.close()
+        
+        print("Extracting java...")
+
+        if (jdu[1] == ".tar.gz"):
+            with tarfile.open(f"java.tar.gz", "r:gz") as jtar:
+                jtar.extractall(path="java")
+        else:
+            shutil.unpack_archive("java.zip")
+        
+        print("Searching java dir...")
+        jdirs = util.fetchJavaDirs()
+        
+        print(jdirs)
 
 if __name__ == "__main__":
     main()
