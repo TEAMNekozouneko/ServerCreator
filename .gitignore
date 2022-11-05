@@ -17,3 +17,10 @@ __pycache__/
 /build/
 /dist/
 *.spec
+*.exe
+*.dll
+*.zip
+*.tar.gz
+/zulu*/
+/jdk*/
+/jre*/
