@@ -14,7 +14,7 @@ class Platform(Enum):
         return None
 
 class Architecture(Enum):
-    X64 = "amd64"
-    X32 = "i386"
+    X64 = "x64"
+    X32 = "x32"
     ARM64 = "aarch64"
     ARM32 = "armhf"
