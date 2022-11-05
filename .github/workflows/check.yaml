@@ -24,9 +24,9 @@ jobs:
         run: pyinstaller servercreator.py --onefile -n ServerCreator
       
       - name: "Test LS"
-        run: ls dist/
+        run: "ls dist/"
 
       - uses: actions/upload-artifact@v3
         with:
           name: "Compiled files"
-          path: "dist/*.exe
+          path: "dist/*.exe"
