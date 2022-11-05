@@ -19,14 +19,11 @@ jobs:
           cache: "pip"
 
       - name: "Install requirements"
-        run: pip install -r requirements.txt
+        run: "pip install -r requirements.txt"
       - name: "Compile exe file"
-        run: pyinstaller servercreator.py --onefile -n ServerCreator
-      
-      - name: "Test LS"
-        run: "ls dist/"
+        run: "pyinstaller servercreator.py --onefile -n ServerCreator.exe"
 
       - uses: actions/upload-artifact@v3
         with:
           name: "Compiled files"
-          path: "dist/*.exe"
+          path: "dist/ServerCreator.exe"
