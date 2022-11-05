@@ -17,11 +17,12 @@ jobs:
         with:
           python-version: "3.10"
           cache: "pip"
-        
-      - run: pip install -r requirements.txt
+
+      - name: "Install requirements"
+        run: pip install -r requirements.txt
       - run: pyinstaller servercreator.py --onefile -n ServerCreator
 
       - uses: actions/upload-artifact@v3
         with:
           name: "Compiled file"
-          path: "ServerCreator.exe"
+          path: "dist/ServerCreator.exe"
