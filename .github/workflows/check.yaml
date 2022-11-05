@@ -20,5 +20,6 @@ jobs:
       - name: Compile application
         uses: JackMcKew/pyinstaller-action-windows@main
         with:
-          path: "./servercreator.py"
+          path: "./"
+          spec: "ServerCreator.spec"
       

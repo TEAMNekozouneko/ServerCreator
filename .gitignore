@@ -16,7 +16,6 @@ __pycache__/
 /whitelist.json
 /build/
 /dist/
-*.spec
 *.exe
 *.dll
 *.zip
