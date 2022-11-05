@@ -1,4 +1,4 @@
-import sys
+import sys, os
 
 def is_64bits():
     return sys.maxsize > 2**32
@@ -18,3 +18,15 @@ def isSpaceOnly(s):
             return False
     
     return True
+
+def fetchJavaDirs():
+    dirs = [d for d in os.listdir() if os.path.isdir("./" + d)]
+    jdirs = []
+    for dir in dirs:
+        if os.path.exists(f"./{dir}/bin/"):
+            if os.path.exists(f"./{dir}/bin/java"):
+                jdirs.append(dir)
+            elif os.path.exists(f"./{dir}/bin/java.exe"):
+                jdirs.append(dir)
+    
+    return jdirs
