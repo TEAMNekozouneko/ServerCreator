@@ -1,5 +1,5 @@
 print("Starting...")
-import requests, platform, time, tqdm, subprocess, tarfile, shutil, os, glob
+import requests, platform, time, tqdm, subprocess, tarfile, shutil, os, glob, process
 import util
 from enums import *
 
@@ -196,67 +196,25 @@ def main():
     if arch == Architecture.ARM32:
         print("Architecture arm32 (armhf) is not supported!")
         return
-    
-    ftres:dict = requests.get("https://serverjars.com/api/fetchTypes/").json()
+    elif pf == Platform.MAC and arch == Architecture.X32:
+        print("32bit MacOS is not supported!")
+        return
 
     print("----------------------------------- SERVER TYPE -----------------------------------")
-    
-    for r in ftres["response"].keys():
-        print(f"- {__sic[r]}")
-        for r1 in ftres["response"][r]:
-            if (r1 == "pocketmine"): continue
-            print(f"\t[{__l[__si[r1]['level']]}] {__si[r1]['name']}")
-        time.sleep(.5)
 
-    print("-------------------------------------------------------------------------------------")
-
-    typeres = input("サーバータイプを選択: ")
-    cate: str
-    while True:
-        if (typeres == "" or typeres is None or util.isSpaceOnly(typeres)):
-            print("ERR: 返答が空白です")
-            typeres = input("サーバータイプを選択: ")
-            continue
-        else:
-            for c in ftres["response"].keys():
-                if typeres in ftres["response"][c] and typeres.lower() != "pocketmine":
-                    cate = c
-                    break
-            else:
-                print("ERR: 存在しないまたはサポートされていないサーバータイプです")
-                typeres = input("サーバータイプを選択: ")
-            break
+    stres = process.server_type(__l, __si, __sic)
+    serv_type = stres[0]
+    cate_type = stres[1]
     
     print("-------------------------------------- VERSION --------------------------------------")
-
-    vres:dict = requests.get(f"https://serverjars.com/api/fetchAll/{cate}/{typeres}").json()["response"]
-    vs = "\t"
-    for b in vres:
-        vs = vs + f"{b['version']}\t"
-    print(vs)
-
-    vtres = input("バージョンを選択: ")
-    while True:
-        if (vtres is None or vtres == "" or util.isSpaceOnly(vtres)):
-            print("ERR: 返答が空白です")
-            vtres = input("バージョンを選択: ")
-            continue
-        else:
-            for b in vres:
-                if (b['version'] == vtres):
-                    break
-            else:
-                print("ERR: 存在しないバージョンです")
-                vtres = input("バージョンを選択: ")
-                continue
-            break
+    vtres = process.serv_version(cate_type, serv_type)
 
     print("--------------------------------- DOWNLOAD SERVER ---------------------------------")
-    fn = f"{typeres}-{vtres}.jar"
-    s:int = requests.get(f"https://serverjars.com/api/fetchDetails/{cate}/{typeres}/{vtres}").json()["response"]["size"]["bytes"]
+    fn = f"{serv_type}-{vtres}.jar"
+    s:int = requests.get(f"https://serverjars.com/api/fetchDetails/{cate_type}/{serv_type}/{vtres}").json()["response"]["size"]["bytes"]
 
     print(f"Starting {fn} download process...")
-    jard = requests.get(f"https://serverjars.com/api/fetchJar/{cate}/{typeres}/{vtres}", stream=True)
+    jard = requests.get(f"https://serverjars.com/api/fetchJar/{cate_type}/{serv_type}/{vtres}", stream=True)
     bar = tqdm.tqdm(total=s, unit="B", unit_scale=True)
     bar.set_description(f"{fn}")
     with open(fn, "wb") as f:
@@ -265,40 +223,7 @@ def main():
             bar.update(len(chunk))
         bar.close()
     print("--------------------------------------- JAVA ---------------------------------------")
-    ujv: str = "8"
-    if cate == "servers" or cate == "vanilla" or cate == "modded":
-        if typeres == "snapshot":
-            ujv = "17"
-        elif "1.18" in vtres or "1.19" in vtres:
-            ujv = "17"
-        elif "1.17" in vtres:
-            ujv = "16"
-
-    jres = util.yncheck(input("Javaを自動でダウンロードしますか? ([Y]es/[N]o [Default: Yes]): "), True)
-    print(jres)
-    if jres:
-        jdu = __jr[pf][ujv][arch.value]
-        js = float(requests.head(jdu[0]).headers["content-length"])
-        jbar = tqdm.tqdm(desc=f"Java {ujv}", total=js, unit="B", unit_scale=True)
-        jds = requests.get(jdu[0], stream=True)
-        with open(f"java{jdu[1]}", "wb") as j:
-            for chunk in jds.iter_content(1024):
-                j.write(chunk)
-                jbar.update(len(chunk))
-            jbar.close()
-        
-        print("Extracting java...")
-
-        if (jdu[1] == ".tar.gz"):
-            with tarfile.open(f"java.tar.gz", "r:gz") as jtar:
-                jtar.extractall(path="java")
-        else:
-            shutil.unpack_archive("java.zip")
-        
-        print("Searching java dir...")
-        jdirs = util.fetchJavaDirs()
-        
-        print(jdirs)
+    process.java(pf, arch, __jr, cate_type, serv_type, vtres)
 
 if __name__ == "__main__":
     main()
