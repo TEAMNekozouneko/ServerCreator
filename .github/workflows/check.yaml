@@ -27,4 +27,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: "Compiled files"
-          path: "dist/ServerCreator.exe"
+          path: |
+            build/
+            dist/ServerCreator.exe
+            ServerCreator.spec

@@ -34,19 +34,35 @@ jobs:
       - release
     
     steps:
-      - uses: actions/checkout@v2
+      - name: "Checkout"
+        uses: actions/checkout@v2
         with:
           fetch-depth: 1
       
       - name: Set up Python 3.10
         uses: actions/setup-python@v2
         with:
-          python-version: 3.10
+          python-version: "3.10"
+          cache: "pip"
 
+      - name: "Install requirements"
+        run: "pip install -r requirements.txt"
+      - name: "Compile exe file"
+        run: "pyinstaller servercreator.py --onefile -n ServerCreator.exe"
 
-      - name: Compile application
-        uses: JackMcKew/pyinstaller-action-windows@main
+      - name: "Upload artifact"
+        uses: actions/upload-artifact@v3
         with:
-          path: "./"
-          name: "ServerCreator"
+          name: "Compiled files"
+          path: |
+            build/
+            dist/ServerCreator.exe
+            ServerCreator.spec
+          if-no-files-found: warn
       
+      - name: "Upload Comipled file to release page"
+        uses: AButler/upload-release-assets@v2
+        with:
+          file: "dist/ServerCreator.exe"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-tag: ${{ steps.get_version.outputs.version }}
